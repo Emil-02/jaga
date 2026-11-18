@@ -10,7 +10,7 @@ license: MIT
 
 # jaga — security gate
 
-Versi {{VERSION}}. Dikelola oleh akun GitHub `Emil-02`.
+Versi {{VERSION}}. Dibuat dan dipelihara oleh [@Emil-02](https://github.com/Emil-02).
 
 ## Kapan dipakai
 

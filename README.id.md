@@ -1,30 +1,24 @@
-# jaga-skill 🛡️
+# jaga-skill
 
-**Security & privacy gate untuk AI coding agent.** Satu perintah memasang pengawal yang membuat agent berhenti sebelum commit/deploy saat ada secret, data pribadi, atau konfigurasi berbahaya.
+[![npm](https://img.shields.io/npm/v/jaga-skill)](https://www.npmjs.com/package/jaga-skill)
+[![CI](https://github.com/Emil-02/jaga-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/Emil-02/jaga-skill/actions/workflows/ci.yml)
+
+Saya bikin `jaga-skill` supaya agent coding berhenti dulu sebelum commit atau deploy kalau ada secret, data pribadi, atau konfigurasi yang berbahaya.
 
 ```sh
 npx jaga-skill init
 ```
 
-Kompatibel dengan **OpenCode · Claude Code · Codex · Gemini CLI · Cursor**.
+Jalan di OpenCode, Claude Code, Codex, Gemini CLI, dan Cursor.
 
 ![demo jaga-skill](docs/demo.gif)
 
-## Kenapa
-
-Skill pada umumnya hanya berisi instruksi. `jaga-skill` punya scanner nyata di belakangnya — [`jaga`](https://github.com/Emil-02/jaga) — yang menghasilkan laporan SARIF bisa dibaca agent. Pemeriksaan berjalan lokal, tanpa upload dan tanpa telemetri.
-
-## Pemakaian
-
 ```sh
-npx jaga-skill init
-npx jaga-skill init --dry-run
-npx jaga-skill init --with-hook
 npx jaga-skill doctor
 npx jaga-skill check --format sarif
 npx jaga-skill uninstall
 ```
 
-Dokumentasi lengkap: [`README.md`](README.md).
+Dokumentasi lengkap ada di [`README.md`](README.md).
 
 Dibuat dan dipelihara oleh [@Emil-02](https://github.com/Emil-02).
