@@ -23,6 +23,8 @@ Gunakan skill ini **setiap kali** kamu akan:
 
 Jangan hanya mengandalkan insting: jalankan pemeriksaan.
 
+Skill ini saya pasang untuk OpenCode, Claude Code, Codex, Gemini CLI, dan Cursor. Untuk agent lain, installer memakai fallback `AGENTS.md`.
+
 ## Aturan keras
 
 1. **Jangan pernah mencetak nilai secret atau data pribadi mentah** ke terminal, komentar kode, atau commit message. `jaga` sudah menyensornya — pertahankan itu.
