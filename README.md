@@ -4,6 +4,8 @@
 
 `jaga` menyatukan pemeriksaan yang selama ini tersebar di tool-tool saya menjadi satu gerbang: satu binary Go, tanpa server, tanpa akun, bisa dipakai lokal maupun sebagai GitHub Action.
 
+> **Pakai AI coding agent?** Pasang [`jaga-skill`](https://github.com/Emil-02/jaga-skill) dengan `npx jaga-skill init` — gate yang menghentikan agent sebelum commit/deploy saat ada secret atau data pribadi. `jaga` adalah scanner di balik skill tersebut.
+
 ```console
 $ jaga check .
 
