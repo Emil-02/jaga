@@ -23,6 +23,7 @@ jobs:
       - name: Init smoke test
         run: |
           mkdir -p smoke/.opencode smoke/.claude
+          git init -q smoke
           node src/cli.mjs init --root smoke
           node src/cli.mjs doctor --root smoke
           node src/cli.mjs uninstall --root smoke --yes

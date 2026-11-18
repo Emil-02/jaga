@@ -43,7 +43,8 @@ export async function doctor(root, opts = {}) {
 
   const bin = await resolveBinary()
   checks.push({ label: 'Scanner', ok: true, detail: `${bin.kind}: ${bin.note}` })
-  checks.push({ label: 'Git repository', ok: await isGitRepo(root), detail: root })
+  const git = await isGitRepo(root)
+  checks.push({ label: 'Git repository', ok: true, detail: git ? root : 'tidak ada (opsional, hook tidak dipakai)' })
 
   return checks
 }
