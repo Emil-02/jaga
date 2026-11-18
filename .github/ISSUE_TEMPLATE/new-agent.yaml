@@ -1,0 +1,11 @@
+---
+name: Target agent baru
+about: Usulkan dukungan untuk agent coding lain
+title: 'target: '
+labels: enhancement, good first issue
+---
+
+Nama agent:
+Lokasi file skill yang dibaca agent:
+Cara deteksi otomatis:
+Contoh struktur folder di repo nyata:

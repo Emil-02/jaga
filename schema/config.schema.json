@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "jaga-skill config",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "fail_on": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"]
+    },
+    "exclude": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "checks": {
+      "type": "object",
+      "properties": {
+        "secret": { "type": "boolean" },
+        "pii": { "type": "boolean" },
+        "hygiene": { "type": "boolean" },
+        "endpoint": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

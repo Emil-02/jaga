@@ -1,0 +1,45 @@
+{
+  "name": "jaga-skill",
+  "version": "0.1.0",
+  "description": "Security & privacy gate for AI coding agents. Works with OpenCode, Claude Code, Codex, Gemini CLI and Cursor.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Emil-02",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Emil-02/jaga-skill.git"
+  },
+  "bin": {
+    "jaga-skill": "src/cli.mjs"
+  },
+  "files": [
+    "src",
+    "references",
+    "schema",
+    "SKILL.md",
+    "README.md",
+    "README.id.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "check": "node src/cli.mjs doctor"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "agent-skills",
+    "ai-agent",
+    "security",
+    "privacy",
+    "cli",
+    "opencode",
+    "claude-code",
+    "codex",
+    "gemini-cli",
+    "cursor",
+    "indonesia"
+  ]
+}
