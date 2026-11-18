@@ -1,0 +1,33 @@
+name: jaga
+description: Satu perintah untuk memeriksa secret, data pribadi, dan kesehatan repo sebelum deploy
+author: Emil-02
+
+inputs:
+  path:
+    description: Direktori yang diperiksa
+    required: false
+    default: .
+  format:
+    description: text | json | sarif | badge
+    required: false
+    default: text
+  fail-on:
+    description: low | medium | high | critical
+    required: false
+    default: high
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+    - name: Pasang jaga
+      shell: bash
+      run: go install github.com/Emil-02/jaga/cmd/jaga@latest
+    - name: Jalankan pemeriksaan
+      id: run
+      shell: bash
+      run: |
+        set -o pipefail
+        jaga check --format "${{ inputs.format }}" --ci --fail-on "${{ inputs.fail-on }}" "${{ inputs.path }}"

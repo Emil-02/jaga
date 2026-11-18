@@ -1,0 +1,9 @@
+node_modules
+dist
+vendor
+coverage
+jaga
+*.sarif
+*.vault
+.env
+.env.*
