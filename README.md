@@ -8,6 +8,8 @@ npx jaga-skill init
 
 Kompatibel dengan **OpenCode · Claude Code · Codex · Gemini CLI · Cursor**, plus fallback `AGENTS.md` untuk agent lain.
 
+![demo jaga-skill: agent diblokir sebelum commit karena secret](docs/demo.gif)
+
 ## Kenapa ini beda
 
 Skill kebanyakan hanya berisi instruksi "hati-hati ya". `jaga-skill` punya scanner deterministik di belakangnya: [`jaga`](https://github.com/Emil-02/jaga) (Go, read-only, lokal) menghasilkan SARIF yang bisa dibaca agent dan diperbaiki sendiri. Tidak ada upload, tidak ada telemetri.
