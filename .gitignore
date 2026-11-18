@@ -2,7 +2,7 @@ node_modules
 dist
 vendor
 coverage
-jaga
+/jaga
 *.sarif
 *.vault
 .env
