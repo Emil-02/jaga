@@ -11,9 +11,10 @@ import (
 )
 
 type Payload struct {
-	Root    string         `json:"root"`
-	Score   int            `json:"score"`
-	Results []check.Result `json:"results"`
+	Root        string         `json:"root"`
+	Score       int            `json:"score"`
+	GeneratedAt string         `json:"generated_at,omitempty"`
+	Results     []check.Result `json:"results"`
 }
 
 func Render(w io.Writer, p Payload, format string) error {

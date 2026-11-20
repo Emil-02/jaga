@@ -93,6 +93,8 @@ fail_on: high
     fail-on: high
 ```
 
+Set `report: "true"` dan `badge: "true"` untuk menghasilkan `jaga-report.json` dan `badge.svg`. Commit file laporan ke repo supaya [Jaga Card](https://github.com/Emil-02/jaga-card) bisa menampilkan skor kamu sebagai kartu publik.
+
 ## MCP server untuk AI agent
 
 `jaga-mcp` membuka scanner yang sama lewat MCP over stdio, supaya agent bisa memeriksa kode

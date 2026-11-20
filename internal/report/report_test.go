@@ -11,8 +11,9 @@ import (
 
 func sample() Payload {
 	return Payload{
-		Root:  "/tmp/demo",
-		Score: 88,
+		Root:        "/tmp/demo",
+		Score:       88,
+		GeneratedAt: "2026-11-20T12:00:00Z",
 		Results: []check.Result{
 			{Name: "secret", Status: "pass", Severity: "critical", Findings: []check.Finding{}},
 			{Name: "pii", Status: "warn", Severity: "high", Findings: []check.Finding{{File: "README.md", Line: 3, Message: "NIK: 3204…9012"}}},
@@ -37,6 +38,9 @@ func TestRenderAllFormats(t *testing.T) {
 		}
 		if format == "badge" && !strings.Contains(buf.String(), "<svg") {
 			t.Fatal("badge bukan SVG")
+		}
+		if format == "json" && !strings.Contains(buf.String(), `"generated_at"`) {
+			t.Fatal("JSON tidak mengandung generated_at")
 		}
 	}
 }

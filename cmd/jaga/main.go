@@ -145,7 +145,13 @@ func runCheck(opts options) int {
 		defer f.Close()
 		out = f
 	}
-	if err := report.Render(out, report.Payload{Root: root, Score: s, Results: results}, opts.format); err != nil {
+	payload := report.Payload{
+		Root:        root,
+		Score:       s,
+		GeneratedAt: time.Now().UTC().Format(time.RFC3339),
+		Results:     results,
+	}
+	if err := report.Render(out, payload, opts.format); err != nil {
 		fmt.Fprintln(os.Stderr, "jaga:", err)
 		return 2
 	}

@@ -8,13 +8,21 @@ inputs:
     required: false
     default: .
   format:
-    description: text | json | sarif | badge
+    description: text | json | sarif | badge | html
     required: false
     default: text
   fail-on:
     description: low | medium | high | critical
     required: false
     default: high
+  report:
+    description: Tulis jaga-report.json ke direktori kerja
+    required: false
+    default: "false"
+  badge:
+    description: Tulis badge.svg ke direktori kerja
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -31,3 +39,11 @@ runs:
       run: |
         set -o pipefail
         jaga check --format "${{ inputs.format }}" --ci --fail-on "${{ inputs.fail-on }}" "${{ inputs.path }}"
+    - name: Tulis jaga-report.json
+      if: inputs.report == 'true'
+      shell: bash
+      run: jaga check --format json --output jaga-report.json "${{ inputs.path }}"
+    - name: Tulis badge.svg
+      if: inputs.badge == 'true'
+      shell: bash
+      run: jaga check --format badge --output badge.svg "${{ inputs.path }}"
