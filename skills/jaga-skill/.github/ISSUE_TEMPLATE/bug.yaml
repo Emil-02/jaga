@@ -1,0 +1,13 @@
+---
+name: Bug
+about: Laporkan masalah instalasi atau pemeriksaan
+title: 'fix: '
+labels: bug
+---
+
+Versi jaga-skill:
+Node.js:
+Sistem operasi:
+Agent yang dipakai:
+Langkah reproduksi:
+Keluaran `jaga-skill doctor`:

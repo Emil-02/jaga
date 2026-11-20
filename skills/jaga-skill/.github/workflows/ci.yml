@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Syntax
+        run: node --check src/cli.mjs
+      - name: Test
+        run: npm test
+      - name: Init smoke test
+        run: |
+          mkdir -p smoke/.opencode smoke/.claude
+          git init -q smoke
+          node src/cli.mjs init --root smoke
+          node src/cli.mjs doctor --root smoke
+          node src/cli.mjs uninstall --root smoke --yes
