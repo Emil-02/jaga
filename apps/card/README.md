@@ -1,6 +1,8 @@
 # Jaga Card
 
-Kartu skor kepercayaan untuk repo GitHub yang diamankan [`jaga`](https://github.com/Emil-02/jaga).
+Kartu skor kepercayaan untuk repo GitHub yang diamankan `jaga`.
+
+Aplikasi ini adalah bagian dari [repo jaga](../../README.md), berada di `apps/card`. Tidak perlu repo terpisah.
 
 Jaga Card membaca `jaga-report.json` dari repo, lalu merangkum skor secret, data pribadi, dan hygiene menjadi satu halaman + badge SVG. Tanpa database, tanpa telemetri, tanpa scan server-side.
 
@@ -87,9 +89,12 @@ Ganti domain dengan URL deploy Vercel kamu bila berbeda.
 
 Tanpa token, halaman profil membatasi 24 repo dan cache respons 10 menit.
 
-## development
+## Development
+
+Dari root repo:
 
 ```sh
+cd apps/card
 npm install
 npm run dev
 npm run lint
@@ -97,6 +102,10 @@ npm run typecheck
 npm run build
 ```
 
+## Deploy
+
+Di Vercel, arahkan **Root Directory** ke `apps/card`. Environment variable opsional: `GITHUB_TOKEN`.
+
 ## Lisensi
 
-MIT. Dibuat dan dipelihara oleh [@Emil-02](https://github.com/Emil-02).
+MIT, bagian dari repo `jaga`. Dibuat dan dipelihara oleh [@Emil-02](https://github.com/Emil-02).

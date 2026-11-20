@@ -93,7 +93,35 @@ fail_on: high
     fail-on: high
 ```
 
-Set `report: "true"` dan `badge: "true"` untuk menghasilkan `jaga-report.json` dan `badge.svg`. Commit file laporan ke repo supaya [Jaga Card](https://github.com/Emil-02/jaga-card) bisa menampilkan skor kamu sebagai kartu publik.
+Set `report: "true"` dan `badge: "true"` untuk menghasilkan `jaga-report.json` dan `badge.svg`. Commit file laporan ke repo supaya [Jaga Card](apps/card/README.md) bisa menampilkan skor kamu sebagai kartu publik.
+
+## PR Gate
+
+`jaga-diff` membandingkan dua laporan, lalu workflow [`jaga-pr.yml`](.github/workflows/jaga-pr.yml) memposting ringkasan `Skor 88 → 76`, temuan baru, dan temuan selesai ke PR. Opsi `strict: true` menggagalkan workflow bila skor turun atau ada temuan baru pada/melebihi `fail-on`.
+
+Pakai di repo lain:
+
+```yaml
+# .github/workflows/jaga.yml
+name: jaga PR Gate
+on: pull_request
+jobs:
+  gate:
+    uses: Emil-02/jaga/.github/workflows/jaga-pr.yml@main
+    with:
+      strict: true
+      fail-on: high
+```
+
+Komentar dibuat oleh `github-actions[bot]` lewat `GITHUB_TOKEN` — hanya komentar, bukan commit, jadi tidak menambah contributor ke repo.
+
+Secara lokal:
+
+```sh
+jaga check /path/ke/base --format json -o base.json
+jaga check . --format json -o head.json
+jaga-diff base.json head.json --format markdown
+```
 
 ## MCP server untuk AI agent
 
@@ -159,6 +187,8 @@ atau di-host sebagai artifact CI.
 ```
 cmd/jaga        entrypoint CLI (stdlib flag, tanpa dependensi eksternal)
 cmd/jaga-mcp    MCP server stdio (JSON-RPC 2.0, stdlib)
+cmd/jaga-diff   pembanding dua laporan untuk PR Gate
+apps/card       Jaga Card — web Next.js (Vercel, root directory: apps/card)
 internal/check  implementasi pemeriksaan + interface umum
 internal/runner eksekusi paralel + timeout
 internal/config parser .jaga.yml (subset yang didokumentasikan)

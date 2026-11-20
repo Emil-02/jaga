@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   test:
@@ -18,10 +19,17 @@ jobs:
           go-version: '1.24'
           cache: true
       - name: Format
-        run: test -z "$(gofmt -l .)"
+        run: test -z "$(gofmt -l cmd internal)"
       - name: Vet
-        run: go vet ./...
+        run: go vet ./cmd/... ./internal/...
       - name: Test
-        run: go test ./... -race
+        run: go test ./cmd/... ./internal/... -race
       - name: Build
-        run: go build ./...
+        run: go build ./cmd/...
+
+  pr-gate:
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/jaga-pr.yml
+    with:
+      strict: true
+      fail-on: high

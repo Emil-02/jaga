@@ -1,9 +1,19 @@
-name: ci
+name: Card CI
 
 on:
   push:
     branches: [main]
+    paths:
+      - "apps/card/**"
+      - ".github/workflows/card.yml"
   pull_request:
+    paths:
+      - "apps/card/**"
+      - ".github/workflows/card.yml"
+
+defaults:
+  run:
+    working-directory: apps/card
 
 jobs:
   check:
@@ -14,6 +24,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: apps/card/package-lock.json
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
