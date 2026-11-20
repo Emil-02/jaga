@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Emil-02/jaga/internal/config"
+	"github.com/Emil-02/jaga/internal/fix"
 	"github.com/Emil-02/jaga/internal/report"
 	"github.com/Emil-02/jaga/internal/runner"
 	"github.com/Emil-02/jaga/internal/score"
@@ -47,6 +49,13 @@ func main() {
 			os.Exit(2)
 		}
 		os.Exit(runInit(opts))
+	case "fix":
+		opts, err := parseFixArgs(os.Args[2:])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "jaga:", err)
+			os.Exit(2)
+		}
+		os.Exit(runFix(opts))
 	case "version":
 		fmt.Println("jaga", version)
 	case "help", "-h", "--help":
@@ -170,6 +179,122 @@ func runCheck(opts options) int {
 	return 0
 }
 
+type fixOptions struct {
+	path       string
+	format     string
+	apply      bool
+	reportPath string
+	authorName string
+}
+
+func parseFixArgs(args []string) (fixOptions, error) {
+	opts := fixOptions{path: ".", format: "text", authorName: os.Getenv("JAGA_AUTHOR_NAME")}
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		next := func() (string, error) {
+			if i+1 >= len(args) {
+				return "", fmt.Errorf("nilai untuk %s tidak ada", a)
+			}
+			i++
+			return args[i], nil
+		}
+		switch a {
+		case "--format":
+			v, err := next()
+			if err != nil {
+				return opts, err
+			}
+			opts.format = v
+		case "--report":
+			v, err := next()
+			if err != nil {
+				return opts, err
+			}
+			opts.reportPath = v
+		case "--author-name":
+			v, err := next()
+			if err != nil {
+				return opts, err
+			}
+			opts.authorName = v
+		case "--apply":
+			opts.apply = true
+		case "-h", "--help":
+			usage()
+			os.Exit(0)
+		default:
+			if strings.HasPrefix(a, "-") {
+				return opts, fmt.Errorf("argumen tidak dikenal: %s", a)
+			}
+			if opts.path != "." {
+				return opts, fmt.Errorf("argumen tidak dikenal: %s", a)
+			}
+			opts.path = a
+		}
+	}
+	return opts, nil
+}
+
+func runFix(opts fixOptions) int {
+	root, err := filepath.Abs(opts.path)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "jaga:", err)
+		return 2
+	}
+	info, err := os.Stat(root)
+	if err != nil || !info.IsDir() {
+		fmt.Fprintln(os.Stderr, "jaga: bukan direktori:", opts.path)
+		return 2
+	}
+
+	var payload report.Payload
+	if opts.reportPath != "" {
+		data, err := os.ReadFile(opts.reportPath)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "jaga:", err)
+			return 2
+		}
+		if err := json.Unmarshal(data, &payload); err != nil {
+			fmt.Fprintln(os.Stderr, "jaga: laporan bukan JSON valid:", err)
+			return 2
+		}
+	} else {
+		cfg, err := config.Load(config.Find(root))
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "jaga:", err)
+			return 2
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+		results := runner.NewDefault().RunAll(ctx, root, cfg)
+		payload = report.Payload{
+			Root:        root,
+			Score:       score.Calculate(results),
+			GeneratedAt: time.Now().UTC().Format(time.RFC3339),
+			Results:     results,
+		}
+	}
+
+	plan := fix.Build(root, payload, opts.authorName)
+	if opts.apply {
+		applied, err := fix.Apply(root, &plan)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "jaga:", err)
+			return 2
+		}
+		defer func() {
+			for _, path := range applied {
+				fmt.Fprintln(os.Stderr, "+", path)
+			}
+		}()
+	}
+	if err := fix.Render(os.Stdout, plan, opts.format); err != nil {
+		fmt.Fprintln(os.Stderr, "jaga:", err)
+		return 2
+	}
+	return 0
+}
+
 type initOptions struct {
 	path        string
 	force       bool
@@ -256,7 +381,14 @@ func usage() {
 Pemakaian:
   jaga check [path] [opsi]
   jaga init [path] [opsi]
+  jaga fix [path] [opsi]
   jaga version
+
+Opsi fix:
+  --apply                  tulis perbaikan aman (default: dry-run)
+  --report FILE            pakai jaga-report.json yang sudah ada
+  --format text|json|patch format keluaran (default: text)
+  --author-name NAMA       pemilik LICENSE baru (atau JAGA_AUTHOR_NAME)
 
 Opsi init:
   --force                  timpa file yang sudah ada
@@ -276,5 +408,7 @@ Contoh:
   jaga check --format sarif -o jaga.sarif .
   jaga check --ci --fail-on high .
   jaga init . --author-name "emil rahmat" --author-email "189325051+Emil-02@users.noreply.github.com"
+  jaga fix .
+  jaga fix . --apply
 `)
 }

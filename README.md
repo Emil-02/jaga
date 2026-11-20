@@ -81,6 +81,20 @@ ditimpa kecuali pakai `--force`; identitas commit di workflow diambil dari argum
 Workflow commit laporan memakai PAT pribadi (`secrets.JAGA_PAT`) supaya author/committer tetap akun kamu.
 Tanpa PAT, laporan tetap dibuat sebagai artifact tapi tidak di-commit.
 
+## Perbaikan otomatis
+
+```sh
+jaga fix .                 # dry-run: tampilkan rencana
+jaga fix . --format patch  # bentuk diff
+jaga fix . --apply         # tulis hanya perbaikan aman
+jaga fix . --report jaga-report.json --apply
+```
+
+Perbaikan **aman** hanya menyentuh file konfigurasi: membuat `LICENSE`, README dasar, workflow CI,
+dan menambah entri `.gitignore` untuk `.env`/kunci. File yang sudah ada tidak pernah ditimpa.
+Temuan `secret` dan `pii` **tidak pernah diubah otomatis** — hanya muncul sebagai saran rotasi/masking.
+Tool MCP `jaga_fix` memakai default dry-run; agent harus menyetel `apply: true` secara eksplisit.
+
 ## Konfigurasi
 
 Buat `.jaga.yml` di root repo (lihat [`examples/.jaga.yml`](examples/.jaga.yml)):
@@ -188,6 +202,7 @@ Tool yang tersedia:
 | `jaga_check` | Skor 0–100 + grade + temuan (path, baris, pesan yang sudah di-masking). Bisa dibatasi ke `secret`, `pii`, atau `hygiene`. |
 | `jaga_gate` | Gerbang commit/deploy: `allowed: true` hanya bila tidak ada temuan pada/melebihi `fail_on`. |
 | `jaga_badge` | SVG badge siap tempel di README. |
+| `jaga_fix` | Rencana perbaikan (dry-run default); `apply: true` hanya menulis file konfigurasi aman. |
 
 Server hanya boleh memindai direktori di bawah `-root` (default: direktori kerja). Path di luar root
 ditolak, dan semua temuan dibatasi maksimal 100 item per respons.
@@ -242,6 +257,7 @@ cmd/jaga        entrypoint CLI (stdlib flag, tanpa dependensi eksternal)
 cmd/jaga-mcp    MCP server stdio (JSON-RPC 2.0, stdlib)
 cmd/jaga-diff   pembanding dua laporan untuk PR Gate
 internal/setup  generator file saat `jaga init`
+internal/fix    perencana & penulis perbaikan aman
 apps/card       Jaga Card — web Next.js (Vercel, root directory: apps/card)
 skills/jaga-skill   paket npm untuk gate AI coding agent
 internal/check  implementasi pemeriksaan + interface umum

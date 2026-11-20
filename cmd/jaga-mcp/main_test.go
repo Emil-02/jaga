@@ -98,10 +98,10 @@ func TestToolsList(t *testing.T) {
 	s, _ := testServer(t)
 	resp := s.handle(request("tools/list", `1`, nil))
 	tools := resp.Result.(map[string]any)["tools"].([]toolDef)
-	if len(tools) != 3 {
+	if len(tools) != 4 {
 		t.Fatalf("jumlah tool = %d", len(tools))
 	}
-	want := map[string]bool{"jaga_check": false, "jaga_gate": false, "jaga_badge": false}
+	want := map[string]bool{"jaga_check": false, "jaga_gate": false, "jaga_badge": false, "jaga_fix": false}
 	for _, tool := range tools {
 		if _, ok := want[tool.Name]; !ok {
 			t.Fatalf("tool tak terduga: %s", tool.Name)

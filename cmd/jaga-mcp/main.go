@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/Emil-02/jaga/internal/config"
+	"github.com/Emil-02/jaga/internal/fix"
 	"github.com/Emil-02/jaga/internal/report"
 	"github.com/Emil-02/jaga/internal/runner"
 	"github.com/Emil-02/jaga/internal/score"
@@ -68,6 +69,12 @@ type checkArgs struct {
 type gateArgs struct {
 	Path   string `json:"path"`
 	FailOn string `json:"fail_on"`
+}
+
+type fixArgs struct {
+	Path   string `json:"path"`
+	Apply  bool   `json:"apply"`
+	Format string `json:"format"`
 }
 
 type findingJSON struct {
@@ -260,6 +267,19 @@ func tools() []toolDef {
 				"additionalProperties": false,
 			},
 		},
+		{
+			Name:        "jaga_fix",
+			Description: "Rencana perbaikan dari temuan jaga. Secara default dry-run: hanya file konfigurasi aman yang boleh ditulis lewat apply=true.",
+			InputSchema: map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"path":   pathProp,
+					"apply":  map[string]any{"type": "boolean", "description": "Tulis perbaikan aman (default: false)."},
+					"format": map[string]any{"type": "string", "enum": []string{"json", "text"}, "description": "Format keluaran (default: json)."},
+				},
+				"additionalProperties": false,
+			},
+		},
 	}
 }
 
@@ -338,6 +358,35 @@ func (s *server) callTool(name string, raw json.RawMessage) map[string]any {
 		}
 		var buf bytes.Buffer
 		if err := report.Render(&buf, payload, "badge"); err != nil {
+			return toolError(err.Error())
+		}
+		return toolText(buf.String())
+	case "jaga_fix":
+		var args fixArgs
+		if err := json.Unmarshal(raw, &args); err != nil {
+			return toolError("argumen tidak valid: " + err.Error())
+		}
+		root, err := s.resolve(args.Path)
+		if err != nil {
+			return toolError(err.Error())
+		}
+		payload, _, err := s.scan(args.Path, nil)
+		if err != nil {
+			return toolError(err.Error())
+		}
+		payload.Root = root
+		plan := fix.Build(root, payload, "")
+		if args.Apply {
+			if _, err := fix.Apply(root, &plan); err != nil {
+				return toolError(err.Error())
+			}
+		}
+		format := args.Format
+		if format == "" {
+			format = "json"
+		}
+		var buf bytes.Buffer
+		if err := fix.Render(&buf, plan, format); err != nil {
 			return toolError(err.Error())
 		}
 		return toolText(buf.String())
