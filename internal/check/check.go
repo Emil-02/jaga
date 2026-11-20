@@ -67,7 +67,9 @@ func ScanLines(ctx context.Context, root string, cfg config.Config, exts map[str
 		if strings.HasSuffix(d.Name(), "_test.go") {
 			return nil
 		}
-		if len(exts) > 0 && !exts[strings.ToLower(filepath.Ext(path))] {
+		ext := strings.ToLower(filepath.Ext(path))
+		isEnv := strings.HasPrefix(strings.ToLower(filepath.Base(path)), ".env")
+		if len(exts) > 0 && !exts[ext] && !isEnv {
 			return nil
 		}
 		info, err := d.Info()

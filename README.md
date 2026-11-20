@@ -27,13 +27,15 @@ Saya punya beberapa tool open source dengan tema yang sama: [`envboy`](https://g
 
 ## Fitur
 
-- Pemeriksaan **secret** (AWS, GitHub, OpenAI, private key, API key generik) dengan masking otomatis.
+- Pemeriksaan **secret AI & Cloud modern** (OpenAI, Anthropic, Google Gemini, Groq, HuggingFace, Supabase `service_role` vs `anon`, Database URI, Midtrans, Xendit, Stripe, AWS, GitHub) dengan masking otomatis dan filter placeholder.
 - Pemeriksaan **data pribadi Indonesia** (NIK, NPWP, nomor HP, rekening) — logika dari [`sensor`](https://github.com/Emil-02/sensor).
+- Pemeriksaan **kebocoran frontend vibe-coding** (deteksi variabel `NEXT_PUBLIC_*` / `VITE_*` yang berisi private/service keys).
 - Pemeriksaan **hygiene repo** (LICENSE, README, workflow CI, .gitignore).
 - Konfigurasi `.jaga.yml`: exclude path, atur severity, atur ambang gagal.
-- Report: `text`, `json`, `sarif`, `badge` (SVG), dan `html` (dashboard mandiri).
+- Report: `text`, `json`, `sarif`, `badge` (SVG), `html` (dashboard mandiri), dan `markdown` (untuk GitHub Step Summary & PR).
 - `jaga-mcp`: MCP server stdio untuk AI coding agent (Claude Code, Codex, Gemini CLI, OpenCode, Cursor).
 - Berjalan paralel, tanpa mengirim data keluar (semua lokal).
+- [Panduan Menambahkan Rule Baru](docs/adding-rules.md) untuk kontributor open source.
 
 ## Instalasi
 
@@ -86,14 +88,46 @@ fail_on: high
 ## GitHub Action
 
 ```yaml
-- uses: Emil-02/jaga@v0.1.0
+- uses: Emil-02/jaga@main
   with:
     path: .
-    format: sarif
     fail-on: high
+    summary: "true" # Tulis tabel ringkasan ke GitHub Step Summary
+    sarif: "true"   # Tulis jaga.sarif untuk GitHub Code Scanning
 ```
 
 Set `report: "true"` dan `badge: "true"` untuk menghasilkan `jaga-report.json` dan `badge.svg`. Commit file laporan ke repo supaya [Jaga Card](apps/card/README.md) bisa menampilkan skor kamu sebagai kartu publik.
+
+### Contoh Workflow Lengkap dengan GitHub Code Scanning:
+
+```yaml
+name: Security & Health Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  jaga:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Jaga Gate
+        uses: Emil-02/jaga@main
+        with:
+          fail-on: high
+          sarif: "true"
+          summary: "true"
+      - name: Upload SARIF report
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: jaga.sarif
+```
 
 ## PR Gate
 

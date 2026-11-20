@@ -169,7 +169,7 @@ Pemakaian:
   jaga version
 
 Opsi:
-  --format text|json|sarif|badge|html  format keluaran (default: text)
+  --format text|json|sarif|badge|html|markdown  format keluaran (default: text)
   -o, --output FILE                tulis ke file
   --config FILE                    paksa file konfigurasi
   --fail-on low|medium|high|critical  ambang kegagalan

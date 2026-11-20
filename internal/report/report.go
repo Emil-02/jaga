@@ -29,6 +29,8 @@ func Render(w io.Writer, p Payload, format string) error {
 		return renderBadge(w, p)
 	case "html":
 		return renderHTML(w, p)
+	case "markdown", "md":
+		return renderMarkdown(w, p)
 	default:
 		return fmt.Errorf("format tidak dikenal: %s", format)
 	}
@@ -290,6 +292,64 @@ func renderHTML(w io.Writer, p Payload) error {
 
 	b.WriteString("<footer>Dihasilkan oleh <strong>jaga</strong> — satu gerbang sebelum deploy.</footer>\n")
 	b.WriteString("</main>\n</body>\n</html>\n")
+	_, err := io.WriteString(w, b.String())
+	return err
+}
+
+func renderMarkdown(w io.Writer, p Payload) error {
+	var b strings.Builder
+	statusEmoji := "🟢"
+	switch {
+	case p.Score < 50:
+		statusEmoji = "🔴"
+	case p.Score < 80:
+		statusEmoji = "🟡"
+	}
+
+	totalFindings := 0
+	for _, r := range p.Results {
+		totalFindings += len(r.Findings)
+	}
+
+	fmt.Fprintf(&b, "### %s Jaga Report: %d/100\n\n", statusEmoji, p.Score)
+	b.WriteString("| Status | Check | Severity | Findings |\n")
+	b.WriteString("| :---: | :--- | :--- | :--- |\n")
+
+	for _, r := range p.Results {
+		mark := "✅"
+		if r.Status == "warn" {
+			mark = "⚠️"
+		}
+		if r.Error != "" {
+			mark = "❌"
+		}
+		count := fmt.Sprintf("%d finding(s)", len(r.Findings))
+		if len(r.Findings) == 0 {
+			count = "clean"
+		}
+		fmt.Fprintf(&b, "| %s | `%s` | `%s` | %s |\n", mark, r.Name, r.Severity, count)
+	}
+
+	if totalFindings > 0 {
+		fmt.Fprintf(&b, "\n<details>\n<summary><b>Findings Detail (%d)</b></summary>\n\n", totalFindings)
+		for _, r := range p.Results {
+			if len(r.Findings) == 0 {
+				continue
+			}
+			fmt.Fprintf(&b, "**%s** (`%s`):\n", r.Name, r.Severity)
+			for _, f := range r.Findings {
+				if f.Line > 0 {
+					fmt.Fprintf(&b, "- `%s:%d` — %s\n", f.File, f.Line, f.Message)
+				} else {
+					fmt.Fprintf(&b, "- `%s` — %s\n", f.File, f.Message)
+				}
+			}
+			b.WriteString("\n")
+		}
+		b.WriteString("</details>\n")
+	}
+
+	b.WriteString("\n> Scanned with [jaga](https://github.com/Emil-02/jaga) — zero-dependency pre-commit & CI gate.\n")
 	_, err := io.WriteString(w, b.String())
 	return err
 }

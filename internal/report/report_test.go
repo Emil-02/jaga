@@ -22,7 +22,7 @@ func sample() Payload {
 }
 
 func TestRenderAllFormats(t *testing.T) {
-	for _, format := range []string{"text", "json", "sarif", "badge", "html"} {
+	for _, format := range []string{"text", "json", "sarif", "badge", "html", "markdown"} {
 		var buf bytes.Buffer
 		if err := Render(&buf, sample(), format); err != nil {
 			t.Fatalf("%s: %v", format, err)
@@ -41,6 +41,9 @@ func TestRenderAllFormats(t *testing.T) {
 		}
 		if format == "json" && !strings.Contains(buf.String(), `"generated_at"`) {
 			t.Fatal("JSON tidak mengandung generated_at")
+		}
+		if format == "markdown" && !strings.Contains(buf.String(), "Jaga Report:") {
+			t.Fatal("markdown tidak mengandung header Jaga Report")
 		}
 	}
 }

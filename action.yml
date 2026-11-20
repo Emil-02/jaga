@@ -1,49 +1,107 @@
-name: jaga
-description: Satu perintah untuk memeriksa secret, data pribadi, dan kesehatan repo sebelum deploy
-author: Emil-02
+name: 'jaga'
+description: 'Satu perintah untuk memeriksa secret, data pribadi, dan kesehatan repo sebelum deploy'
+author: 'Emil-02'
+
+branding:
+  icon: 'shield'
+  color: 'green'
 
 inputs:
   path:
-    description: Direktori yang diperiksa
+    description: 'Direktori yang diperiksa'
     required: false
-    default: .
+    default: '.'
   format:
-    description: text | json | sarif | badge | html
+    description: 'Format keluaran konsol: text | json | sarif | badge | html | markdown'
     required: false
-    default: text
+    default: 'text'
   fail-on:
-    description: low | medium | high | critical
+    description: 'Ambang temuan yang memblokir: low | medium | high | critical'
     required: false
-    default: high
+    default: 'high'
   report:
-    description: Tulis jaga-report.json ke direktori kerja
+    description: 'Tulis jaga-report.json ke direktori kerja'
     required: false
-    default: "false"
+    default: 'false'
+  sarif:
+    description: 'Tulis jaga.sarif untuk GitHub Code Scanning'
+    required: false
+    default: 'false'
   badge:
-    description: Tulis badge.svg ke direktori kerja
+    description: 'Tulis badge.svg ke direktori kerja'
     required: false
-    default: "false"
+    default: 'false'
+  summary:
+    description: 'Tulis ringkasan laporan ke GitHub Step Summary ($GITHUB_STEP_SUMMARY)'
+    required: false
+    default: 'true'
+
+outputs:
+  score:
+    description: 'Skor kesehatan repo (0-100)'
+    value: ${{ steps.scan.outputs.score }}
+  findings:
+    description: 'Jumlah total temuan'
+    value: ${{ steps.scan.outputs.findings }}
+  sarif-file:
+    description: 'Path ke file SARIF jika dibuat'
+    value: ${{ steps.scan.outputs.sarif-file }}
+  report-file:
+    description: 'Path ke file JSON report jika dibuat'
+    value: ${{ steps.scan.outputs.report-file }}
 
 runs:
-  using: composite
+  using: 'composite'
   steps:
     - uses: actions/setup-go@v5
       with:
         go-version: '1.24'
+
     - name: Pasang jaga
       shell: bash
-      run: go install github.com/Emil-02/jaga/cmd/jaga@latest
-    - name: Jalankan pemeriksaan
-      id: run
+      run: go install github.com/Emil-02/jaga/cmd/jaga@main
+
+    - name: Pindai dan siapkan artifak
+      id: scan
+      shell: bash
+      run: |
+        set -e
+        # Pindai JSON untuk memproses metrik
+        jaga check "${{ inputs.path }}" --format json -o .jaga-tmp.json
+
+        # Ekstrak skor dan jumlah temuan
+        SCORE=$(jq -r '.score // 0' .jaga-tmp.json 2>/dev/null || echo "0")
+        FINDINGS=$(jq -r '[.results[].findings[]] | length' .jaga-tmp.json 2>/dev/null || echo "0")
+        echo "score=$SCORE" >> "$GITHUB_OUTPUT"
+        echo "findings=$FINDINGS" >> "$GITHUB_OUTPUT"
+
+        # Tulis GitHub Step Summary
+        if [ "${{ inputs.summary }}" = "true" ]; then
+          jaga check "${{ inputs.path }}" --format markdown >> "$GITHUB_STEP_SUMMARY"
+        fi
+
+        # Simpan report JSON jika diminta
+        if [ "${{ inputs.report }}" = "true" ]; then
+          cp .jaga-tmp.json jaga-report.json
+          echo "report-file=jaga-report.json" >> "$GITHUB_OUTPUT"
+        fi
+
+        # Buat file SARIF jika diminta
+        if [ "${{ inputs.sarif }}" = "true" ]; then
+          jaga check "${{ inputs.path }}" --format sarif -o jaga.sarif
+          echo "sarif-file=jaga.sarif" >> "$GITHUB_OUTPUT"
+        fi
+
+        # Buat badge SVG jika diminta
+        if [ "${{ inputs.badge }}" = "true" ]; then
+          jaga check "${{ inputs.path }}" --format badge -o badge.svg
+        fi
+
+        # Bersihkan file temporer
+        rm -f .jaga-tmp.json
+
+    - name: Tampilkan log dan evaluasi gate CI
       shell: bash
       run: |
         set -o pipefail
-        jaga check --format "${{ inputs.format }}" --ci --fail-on "${{ inputs.fail-on }}" "${{ inputs.path }}"
-    - name: Tulis jaga-report.json
-      if: inputs.report == 'true'
-      shell: bash
-      run: jaga check --format json --output jaga-report.json "${{ inputs.path }}"
-    - name: Tulis badge.svg
-      if: inputs.badge == 'true'
-      shell: bash
-      run: jaga check --format badge --output badge.svg "${{ inputs.path }}"
+        jaga check "${{ inputs.path }}" --format "${{ inputs.format }}" --ci --fail-on "${{ inputs.fail-on }}"
