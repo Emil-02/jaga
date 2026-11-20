@@ -105,6 +105,9 @@ Pakai di repo lain:
 # .github/workflows/jaga.yml
 name: jaga PR Gate
 on: pull_request
+permissions:
+  contents: read
+  pull-requests: write
 jobs:
   gate:
     uses: Emil-02/jaga/.github/workflows/jaga-pr.yml@main

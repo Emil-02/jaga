@@ -44,6 +44,6 @@ export function cardSVG(opts: {
   <rect x="436" y="62" width="42" height="24" rx="12" fill="${color}" fill-opacity="0.15" stroke="${color}" stroke-opacity="0.5"/>
   <text x="457" y="79" fill="${color}" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="13" font-weight="bold" text-anchor="middle">${badge}</text>
   <text x="28" y="116" fill="#94a3b8" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="12">${escapeXml(caption)}</text>
-  <text x="28" y="136" fill="#475569" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="10">github.com/Emil-02/jaga-card</text>
+  <text x="28" y="136" fill="#475569" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="10">github.com/Emil-02/jaga</text>
 </svg>`;
 }

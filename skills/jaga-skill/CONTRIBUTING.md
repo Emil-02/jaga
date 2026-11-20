@@ -2,7 +2,7 @@
 
 Terima kasih sudah mau bantu mengembangkan `jaga-skill`. Saya senang menerima perubahan kecil maupun besar, selama masih sesuai arah proyeknya.
 
-Repository ini saya kelola lewat akun [@Emil-02](https://github.com/Emil-02). Pemilik dan reviewer untuk semua perubahan ada di [`.github/CODEOWNERS`](.github/CODEOWNERS).
+Repository ini saya kelola lewat akun [@Emil-02](https://github.com/Emil-02). Pemilik dan reviewer untuk semua perubahan ada di [`.github/CODEOWNERS`](../../.github/CODEOWNERS).
 
 ## Alur kerja
 

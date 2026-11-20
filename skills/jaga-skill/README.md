@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/jaga-skill)](https://www.npmjs.com/package/jaga-skill)
 [![CI](https://github.com/Emil-02/jaga/actions/workflows/skill-ci.yml/badge.svg)](https://github.com/Emil-02/jaga/actions/workflows/skill-ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](../../LICENSE)
 
 Saya bikin `jaga-skill` karena agent coding sekarang makin sering commit dan deploy sendiri, tapi belum punya kebiasaan berhenti sejenak untuk cek secret atau data pribadi. Cukup satu perintah, agent Anda dapat pengawal yang bekerja sebelum kode keluar dari laptop.
 
