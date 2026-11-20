@@ -1,12 +1,19 @@
-name: CI
+name: Skill CI
 
 on:
   push:
     branches: [main]
+    paths:
+      - "skills/jaga-skill/**"
+      - ".github/workflows/skill-ci.yml"
   pull_request:
+    paths:
+      - "skills/jaga-skill/**"
+      - ".github/workflows/skill-ci.yml"
 
-permissions:
-  contents: read
+defaults:
+  run:
+    working-directory: skills/jaga-skill
 
 jobs:
   test:

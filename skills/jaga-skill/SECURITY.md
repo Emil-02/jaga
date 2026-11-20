@@ -6,7 +6,7 @@ Kalau Anda memakai git hook, `jaga-skill` hanya menambahkan blok bermarker ke ho
 
 ## Melaporkan kerentanan
 
-Sebaiknya jangan buka issue publik. Kirim laporannya lewat [GitHub Security Advisories](https://github.com/Emil-02/jaga-skill/security/advisories/new) supaya detailnya tetap privat. Saya biasanya merespons dalam 7 hari.
+Sebaiknya jangan buka issue publik. Kirim laporannya lewat [GitHub Security Advisories](https://github.com/Emil-02/jaga/security/advisories/new) supaya detailnya tetap privat. Saya biasanya merespons dalam 7 hari.
 
 ## Dukungan
 

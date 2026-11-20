@@ -1,8 +1,8 @@
-name: Release
+name: Skill Release
 
 on:
   push:
-    tags: ['v*']
+    tags: ['skill-v*']
 
 permissions:
   contents: write
@@ -11,6 +11,9 @@ permissions:
 jobs:
   npm:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: skills/jaga-skill
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:

@@ -4,7 +4,7 @@
 
 `jaga` menyatukan pemeriksaan yang selama ini tersebar di tool-tool saya menjadi satu gerbang: satu binary Go, tanpa server, tanpa akun, bisa dipakai lokal maupun sebagai GitHub Action.
 
-> **Pakai AI coding agent?** Pasang [`jaga-skill`](https://github.com/Emil-02/jaga-skill) dengan `npx jaga-skill init` — gate yang menghentikan agent sebelum commit/deploy saat ada secret atau data pribadi. `jaga` adalah scanner di balik skill tersebut.
+> **Pakai AI coding agent?** Pasang [`jaga-skill`](skills/jaga-skill/README.md) dengan `npx jaga-skill init` — gate yang menghentikan agent sebelum commit/deploy saat ada secret atau data pribadi. `jaga` adalah scanner di balik skill tersebut.
 
 ```console
 $ jaga check .
@@ -189,6 +189,7 @@ cmd/jaga        entrypoint CLI (stdlib flag, tanpa dependensi eksternal)
 cmd/jaga-mcp    MCP server stdio (JSON-RPC 2.0, stdlib)
 cmd/jaga-diff   pembanding dua laporan untuk PR Gate
 apps/card       Jaga Card — web Next.js (Vercel, root directory: apps/card)
+skills/jaga-skill   paket npm untuk gate AI coding agent
 internal/check  implementasi pemeriksaan + interface umum
 internal/runner eksekusi paralel + timeout
 internal/config parser .jaga.yml (subset yang didokumentasikan)
@@ -197,6 +198,13 @@ internal/score  perhitungan skor 0-100
 ```
 
 Rencana lanjutan: integrasi penuh `leakboy` dan `gh-spruce`, rule packs dari komunitas, serta dukungan konfigurasi YAML penuh.
+
+## Rilis
+
+Satu repo, dua artefact dengan tag berbeda:
+
+- `v*` — rilis `jaga` (CLI, MCP, Action) lewat `go install`.
+- `skill-v*` — publish `jaga-skill` ke npm lewat `.github/workflows/skill-release.yml`.
 
 ## Lisensi & atribusi
 
