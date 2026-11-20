@@ -65,6 +65,22 @@ jaga check . --ci --fail-on high   # untuk pipeline
 
 Keluar dengan kode `1` bila ada temuan pada/melebihi `--fail-on` (default: `high`).
 
+## Menyiapkan repo baru
+
+```sh
+jaga init . \
+  --author-name "emil rahmat" \
+  --author-email "189325051+Emil-02@users.noreply.github.com"
+```
+
+`jaga init` menulis `.jaga.yml`, workflow `.github/workflows/jaga.yml` (PR Gate + generator laporan),
+badge di README, lalu menjalankan scan pertama menjadi `jaga-report.json`. File yang sudah ada tidak
+ditimpa kecuali pakai `--force`; identitas commit di workflow diambil dari argumen atau environment
+`JAGA_AUTHOR_NAME` / `JAGA_AUTHOR_EMAIL` — tidak memakai `github-actions[bot]`.
+
+Workflow commit laporan memakai PAT pribadi (`secrets.JAGA_PAT`) supaya author/committer tetap akun kamu.
+Tanpa PAT, laporan tetap dibuat sebagai artifact tapi tidak di-commit.
+
 ## Konfigurasi
 
 Buat `.jaga.yml` di root repo (lihat [`examples/.jaga.yml`](examples/.jaga.yml)):
@@ -225,6 +241,7 @@ atau di-host sebagai artifact CI.
 cmd/jaga        entrypoint CLI (stdlib flag, tanpa dependensi eksternal)
 cmd/jaga-mcp    MCP server stdio (JSON-RPC 2.0, stdlib)
 cmd/jaga-diff   pembanding dua laporan untuk PR Gate
+internal/setup  generator file saat `jaga init`
 apps/card       Jaga Card — web Next.js (Vercel, root directory: apps/card)
 skills/jaga-skill   paket npm untuk gate AI coding agent
 internal/check  implementasi pemeriksaan + interface umum

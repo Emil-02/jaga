@@ -16,11 +16,12 @@ npx jaga-skill check
 Buat `lib/config.js`:
 
 ```js
-export const OPENAI_KEY = 'sk-proj-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-export const NIK = '3204123456789012'
+export const OPENAI_KEY = 'sk-proj-CONTOH'
+export const NIK = '3204XXXXXXXXXXXX'
 ```
 
-Lalu minta agent melakukan commit. Agent seharusnya:
+Isi kedua nilai di atas dengan string uji buatanmu yang menyerupai kredensial — jangan pakai kunci
+atau data pribadi asli. Lalu minta agent melakukan commit. Agent seharusnya:
 
 1. Menjalankan `jaga-skill check`.
 2. Melihat temuan `secret` dan `pii`.

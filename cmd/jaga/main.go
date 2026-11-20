@@ -6,12 +6,14 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/Emil-02/jaga/internal/config"
 	"github.com/Emil-02/jaga/internal/report"
 	"github.com/Emil-02/jaga/internal/runner"
 	"github.com/Emil-02/jaga/internal/score"
+	"github.com/Emil-02/jaga/internal/setup"
 )
 
 const version = "0.1.0"
@@ -38,6 +40,13 @@ func main() {
 			os.Exit(2)
 		}
 		os.Exit(runCheck(opts))
+	case "init":
+		opts, err := parseInitArgs(os.Args[2:])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "jaga:", err)
+			os.Exit(2)
+		}
+		os.Exit(runInit(opts))
 	case "version":
 		fmt.Println("jaga", version)
 	case "help", "-h", "--help":
@@ -161,14 +170,101 @@ func runCheck(opts options) int {
 	return 0
 }
 
+type initOptions struct {
+	path        string
+	force       bool
+	skipScan    bool
+	authorName  string
+	authorEmail string
+}
+
+func parseInitArgs(args []string) (initOptions, error) {
+	opts := initOptions{
+		path:        ".",
+		authorName:  os.Getenv("JAGA_AUTHOR_NAME"),
+		authorEmail: os.Getenv("JAGA_AUTHOR_EMAIL"),
+	}
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		next := func() (string, error) {
+			if i+1 >= len(args) {
+				return "", fmt.Errorf("nilai untuk %s tidak ada", a)
+			}
+			i++
+			return args[i], nil
+		}
+		switch a {
+		case "--force":
+			opts.force = true
+		case "--skip-scan":
+			opts.skipScan = true
+		case "--author-name":
+			v, err := next()
+			if err != nil {
+				return opts, err
+			}
+			opts.authorName = v
+		case "--author-email":
+			v, err := next()
+			if err != nil {
+				return opts, err
+			}
+			opts.authorEmail = v
+		case "-h", "--help":
+			usage()
+			os.Exit(0)
+		default:
+			if strings.HasPrefix(a, "-") {
+				return opts, fmt.Errorf("argumen tidak dikenal: %s", a)
+			}
+			if opts.path != "." {
+				return opts, fmt.Errorf("argumen tidak dikenal: %s", a)
+			}
+			opts.path = a
+		}
+	}
+	return opts, nil
+}
+
+func runInit(opts initOptions) int {
+	result, err := setup.Run(setup.Options{
+		Root:        opts.path,
+		Force:       opts.force,
+		SkipScan:    opts.skipScan,
+		AuthorName:  opts.authorName,
+		AuthorEmail: opts.authorEmail,
+	})
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "jaga:", err)
+		return 2
+	}
+	for _, file := range result.Created {
+		fmt.Println("+", file)
+	}
+	for _, file := range result.Skipped {
+		fmt.Println("=", file)
+	}
+	if len(result.Created) == 0 {
+		fmt.Println("tidak ada perubahan")
+	}
+	return 0
+}
+
 func usage() {
 	fmt.Print(`jaga — satu gerbang sebelum deploy
 
 Pemakaian:
   jaga check [path] [opsi]
+  jaga init [path] [opsi]
   jaga version
 
-Opsi:
+Opsi init:
+  --force                  timpa file yang sudah ada
+  --skip-scan              jangan buat jaga-report.json
+  --author-name NAMA       identitas commit di workflow (atau JAGA_AUTHOR_NAME)
+  --author-email EMAIL     identitas commit di workflow (atau JAGA_AUTHOR_EMAIL)
+
+Opsi check:
   --format text|json|sarif|badge|html|markdown  format keluaran (default: text)
   -o, --output FILE                tulis ke file
   --config FILE                    paksa file konfigurasi
@@ -179,5 +275,6 @@ Contoh:
   jaga check .
   jaga check --format sarif -o jaga.sarif .
   jaga check --ci --fail-on high .
+  jaga init . --author-name "emil rahmat" --author-email "189325051+Emil-02@users.noreply.github.com"
 `)
 }

@@ -14,7 +14,7 @@ Ringkasan aturan yang dipakai `jaga`. Detail implementasi ada di repository `jag
 ## pii (high)
 
 - NIK / KK: 16 digit
-- NPWP: `00.000.000.0-000.000`
+- NPWP: `XX.XXX.XXX.X-XXX.XXX`
 - Nomor HP Indonesia: `08…`
 - Nomor rekening setelah kata `rekening` / `no. rek`
 
