@@ -21,7 +21,7 @@ func sample() Payload {
 }
 
 func TestRenderAllFormats(t *testing.T) {
-	for _, format := range []string{"text", "json", "sarif", "badge"} {
+	for _, format := range []string{"text", "json", "sarif", "badge", "html"} {
 		var buf bytes.Buffer
 		if err := Render(&buf, sample(), format); err != nil {
 			t.Fatalf("%s: %v", format, err)
@@ -38,6 +38,26 @@ func TestRenderAllFormats(t *testing.T) {
 		if format == "badge" && !strings.Contains(buf.String(), "<svg") {
 			t.Fatal("badge bukan SVG")
 		}
+	}
+}
+
+func TestRenderHTMLEscapesFindings(t *testing.T) {
+	p := sample()
+	p.Root = `/tmp/<repo> & "saudara"`
+	p.Results[1].Findings[0].File = `<img src=x onerror=alert(1)>`
+	p.Results[1].Findings[0].Message = `NIK & <data> "rahasia"`
+	var buf bytes.Buffer
+	if err := Render(&buf, p, "html"); err != nil {
+		t.Fatal(err)
+	}
+	out := buf.String()
+	for _, want := range []string{"<!doctype html>", "--score:88", "&lt;img", "&lt;data&gt;", "&amp;", "&#34;rahasia&#34;"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("HTML tidak mengandung %q", want)
+		}
+	}
+	if strings.Contains(out, "<img src=x") {
+		t.Fatal("HTML tidak di-escape")
 	}
 }
 

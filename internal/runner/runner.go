@@ -13,12 +13,38 @@ type Runner struct {
 	checks []check.Check
 }
 
+var registry = map[string]func() check.Check{
+	"secret":  func() check.Check { return check.Secret{} },
+	"pii":     func() check.Check { return check.PII{} },
+	"hygiene": func() check.Check { return check.Hygiene{} },
+}
+
 func NewDefault() *Runner {
-	return &Runner{checks: []check.Check{
-		check.Secret{},
-		check.PII{},
-		check.Hygiene{},
-	}}
+	return New("secret", "pii", "hygiene")
+}
+
+func New(names ...string) *Runner {
+	checks := make([]check.Check, 0, len(names))
+	for _, name := range names {
+		if ctor, ok := registry[name]; ok {
+			checks = append(checks, ctor())
+		}
+	}
+	return &Runner{checks: checks}
+}
+
+func Names() []string {
+	names := make([]string, 0, len(registry))
+	for name := range registry {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
+}
+
+func Valid(name string) bool {
+	_, ok := registry[name]
+	return ok
 }
 
 func (r *Runner) Add(c check.Check) {

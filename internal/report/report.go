@@ -3,6 +3,7 @@ package report
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"strings"
 
@@ -25,6 +26,8 @@ func Render(w io.Writer, p Payload, format string) error {
 		return renderSARIF(w, p)
 	case "badge":
 		return renderBadge(w, p)
+	case "html":
+		return renderHTML(w, p)
 	default:
 		return fmt.Errorf("format tidak dikenal: %s", format)
 	}
@@ -161,5 +164,131 @@ func renderBadge(w io.Writer, p Payload) error {
 </svg>
 `, p.Score, color, p.Score)
 	_, err := io.WriteString(w, svg)
+	return err
+}
+
+const htmlStyle = `
+:root{color-scheme:dark;--bg:#0b1120;--card:#111c34;--line:#1e293b;--text:#e2e8f0;--muted:#94a3b8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 20px 64px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:16px;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:32px}
+.brand{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.brand span{font-size:18px}
+.path{color:var(--muted);font:13px ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;text-align:right}
+.hero{display:flex;gap:32px;align-items:center;margin-bottom:40px}
+.ring{--score:0;--color:#4ade80;flex:none;width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--color) calc(var(--score)*1%),var(--line) 0);display:grid;place-items:center}
+.ring-inner{width:106px;height:106px;border-radius:50%;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-inner strong{font-size:34px;line-height:1;color:var(--color)}
+.ring-inner span{font-size:12px;color:var(--muted)}
+h1{font-size:26px;margin:0 0 8px;letter-spacing:-.02em}
+.hero-copy p{margin:0 0 20px;color:var(--muted)}
+.stats{display:flex;gap:24px;flex-wrap:wrap}
+.stat b{display:block;font-size:20px;line-height:1.2}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+h2{font-size:14px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:14px}
+.card-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card-head h3{margin:0;font-size:16px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.pill{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid currentColor;opacity:.9}
+.pill.low{color:#94a3b8}.pill.medium{color:#fbbf24}.pill.high{color:#fb923c}.pill.critical{color:#f87171}
+.status{margin-left:auto;font-size:11px;color:var(--muted)}
+.status.warn{color:#fbbf24}.status.error{color:#f87171}
+.findings{list-style:none;margin:14px 0 0;padding:0}
+.findings li{padding:8px 0;border-top:1px solid var(--line)}
+.findings code{color:#7dd3fc;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;margin-right:8px}
+.findings li span{color:var(--text)}
+.empty{margin:14px 0 0;color:var(--muted);font-size:13px}
+footer{border-top:1px solid var(--line);margin-top:40px;padding-top:16px;color:var(--muted);font-size:12px}
+@media(max-width:600px){.hero{flex-direction:column;text-align:center}.path{text-align:center}.stats{justify-content:center}}
+`
+
+func renderHTML(w io.Writer, p Payload) error {
+	var b strings.Builder
+	color := "#4ade80"
+	switch {
+	case p.Score < 50:
+		color = "#f87171"
+	case p.Score < 80:
+		color = "#fbbf24"
+	}
+
+	findings := 0
+	warns := 0
+	for _, r := range p.Results {
+		findings += len(r.Findings)
+		if r.Status == "warn" || r.Error != "" {
+			warns++
+		}
+	}
+
+	b.WriteString("<!doctype html>\n<html lang=\"id\">\n<head>\n<meta charset=\"utf-8\">\n")
+	b.WriteString("<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n")
+	b.WriteString("<title>jaga — laporan keamanan</title>\n<style>")
+	b.WriteString(htmlStyle)
+	b.WriteString("</style>\n</head>\n<body>\n<main>\n")
+
+	b.WriteString("<header><div class=\"brand\">jaga <span>🌿</span></div><div class=\"path\">")
+	b.WriteString(html.EscapeString(p.Root))
+	b.WriteString("</div></header>\n")
+
+	b.WriteString("<section class=\"hero\"><div class=\"ring\" style=\"--score:")
+	fmt.Fprintf(&b, "%d;--color:%s\"><div class=\"ring-inner\"><strong>%d</strong><span>/100</span></div></div>\n", p.Score, color, p.Score)
+	b.WriteString("<div class=\"hero-copy\"><h1>Laporan keamanan repo</h1>")
+	b.WriteString("<p>Hasil pemeriksaan otomatis. Semua proses berjalan lokal, tanpa telemetri.</p>")
+	b.WriteString("<div class=\"stats\">")
+	fmt.Fprintf(&b, "<div class=\"stat\"><b>%d</b><span>pemeriksaan</span></div>", len(p.Results))
+	fmt.Fprintf(&b, "<div class=\"stat\"><b>%d</b><span>temuan</span></div>", findings)
+	fmt.Fprintf(&b, "<div class=\"stat\"><b>%d</b><span>perlu perhatian</span></div>", warns)
+	b.WriteString("</div></div></section>\n")
+
+	b.WriteString("<section><h2>Pemeriksaan</h2>\n")
+	for _, r := range p.Results {
+		b.WriteString("<article class=\"card\"><div class=\"card-head\"><h3>")
+		b.WriteString(html.EscapeString(r.Name))
+		b.WriteString("</h3><span class=\"pill ")
+		b.WriteString(html.EscapeString(string(r.Severity)))
+		b.WriteString("\">")
+		b.WriteString(html.EscapeString(string(r.Severity)))
+		b.WriteString("</span><span class=\"status")
+		switch {
+		case r.Error != "":
+			b.WriteString(" error\">error")
+		case r.Status == "warn":
+			b.WriteString(" warn\">peringatan")
+		default:
+			b.WriteString("\">lolos")
+		}
+		b.WriteString("</span></div>\n")
+
+		if len(r.Findings) > 0 {
+			b.WriteString("<ul class=\"findings\">\n")
+			for _, f := range r.Findings {
+				b.WriteString("<li><code>")
+				loc := f.File
+				if f.Line > 0 {
+					loc += ":" + fmt.Sprint(f.Line)
+				}
+				b.WriteString(html.EscapeString(loc))
+				b.WriteString("</code><span>")
+				b.WriteString(html.EscapeString(f.Message))
+				b.WriteString("</span></li>\n")
+			}
+			b.WriteString("</ul>\n")
+		} else {
+			b.WriteString("<p class=\"empty\">Tidak ada temuan.</p>\n")
+		}
+		if r.Error != "" {
+			b.WriteString("<p class=\"empty\">")
+			b.WriteString(html.EscapeString(r.Error))
+			b.WriteString("</p>\n")
+		}
+		b.WriteString("</article>\n")
+	}
+	b.WriteString("</section>\n")
+
+	b.WriteString("<footer>Dihasilkan oleh <strong>jaga</strong> — satu gerbang sebelum deploy.</footer>\n")
+	b.WriteString("</main>\n</body>\n</html>\n")
+	_, err := io.WriteString(w, b.String())
 	return err
 }

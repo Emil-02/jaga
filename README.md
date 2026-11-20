@@ -31,13 +31,15 @@ Saya punya beberapa tool open source dengan tema yang sama: [`envboy`](https://g
 - Pemeriksaan **data pribadi Indonesia** (NIK, NPWP, nomor HP, rekening) — logika dari [`sensor`](https://github.com/Emil-02/sensor).
 - Pemeriksaan **hygiene repo** (LICENSE, README, workflow CI, .gitignore).
 - Konfigurasi `.jaga.yml`: exclude path, atur severity, atur ambang gagal.
-- Report: `text`, `json`, `sarif`, `badge` (SVG).
+- Report: `text`, `json`, `sarif`, `badge` (SVG), dan `html` (dashboard mandiri).
+- `jaga-mcp`: MCP server stdio untuk AI coding agent (Claude Code, Codex, Gemini CLI, OpenCode, Cursor).
 - Berjalan paralel, tanpa mengirim data keluar (semua lokal).
 
 ## Instalasi
 
 ```sh
 go install github.com/Emil-02/jaga/cmd/jaga@latest
+go install github.com/Emil-02/jaga/cmd/jaga-mcp@latest
 ```
 
 Atau build dari sumber:
@@ -55,6 +57,7 @@ jaga check .                       # periksa direktori saat ini
 jaga check ./app --format json     # output mesin
 jaga check . --format sarif -o jaga.sarif
 jaga check . --format badge -o badge.svg
+jaga check . --format html -o laporan.html   # dashboard, tanpa JS/CDN
 jaga check . --ci --fail-on high   # untuk pipeline
 ```
 
@@ -90,18 +93,78 @@ fail_on: high
     fail-on: high
 ```
 
+## MCP server untuk AI agent
+
+`jaga-mcp` membuka scanner yang sama lewat MCP over stdio, supaya agent bisa memeriksa kode
+**sebelum commit atau deploy**. Masih stdlib Go, tanpa dependensi eksternal.
+
+Tool yang tersedia:
+
+| Tool | Fungsi |
+|---|---|
+| `jaga_check` | Skor 0–100 + grade + temuan (path, baris, pesan yang sudah di-masking). Bisa dibatasi ke `secret`, `pii`, atau `hygiene`. |
+| `jaga_gate` | Gerbang commit/deploy: `allowed: true` hanya bila tidak ada temuan pada/melebihi `fail_on`. |
+| `jaga_badge` | SVG badge siap tempel di README. |
+
+Server hanya boleh memindai direktori di bawah `-root` (default: direktori kerja). Path di luar root
+ditolak, dan semua temuan dibatasi maksimal 100 item per respons.
+
+**OpenCode** — tambahkan ke `opencode.jsonc` di project (V2 memakai `mcp.servers`):
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "jaga": {
+        "type": "local",
+        "command": ["jaga-mcp", "-root", "/path/ke/project"],
+        "codemode": false
+      }
+    }
+  }
+}
+```
+
+**Agent lain** (Claude Code, Cursor, Codex, Gemini CLI) — pola umum `mcpServers`:
+
+```json
+{
+  "mcpServers": {
+    "jaga": {
+      "command": "jaga-mcp",
+      "args": ["-root", "/path/ke/project"]
+    }
+  }
+}
+```
+
+Cek koneksi dengan `opencode mcp list`, lalu ajakan agent: *"jalankan jaga_gate sebelum commit"*.
+
+## Dashboard HTML & badge
+
+```sh
+jaga check . --format html -o laporan.html
+jaga check . --format badge -o badge.svg
+```
+
+`laporan.html` adalah satu file mandiri: ring skor, ringkasan temuan, dan kartu per pemeriksaan.
+Tidak ada JavaScript, font, atau CSS dari CDN — aman dibuka offline dan bisa di-commit ke repo
+atau di-host sebagai artifact CI.
+
 ## Arsitektur
 
 ```
 cmd/jaga        entrypoint CLI (stdlib flag, tanpa dependensi eksternal)
+cmd/jaga-mcp    MCP server stdio (JSON-RPC 2.0, stdlib)
 internal/check  implementasi pemeriksaan + interface umum
 internal/runner eksekusi paralel + timeout
 internal/config parser .jaga.yml (subset yang didokumentasikan)
-internal/report formatter text/json/sarif/badge
+internal/report formatter text/json/sarif/badge/html
 internal/score  perhitungan skor 0-100
 ```
 
-Rencana lanjutan: integrasi penuh `leakboy` dan `gh-spruce`, rule packs dari komunitas, dan dukungan konfigurasi YAML penuh.
+Rencana lanjutan: integrasi penuh `leakboy` dan `gh-spruce`, rule packs dari komunitas, serta dukungan konfigurasi YAML penuh.
 
 ## Lisensi & atribusi
 
